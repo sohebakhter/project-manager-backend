@@ -67,7 +67,7 @@ export const updateProject = async (req: Request, res: Response) => {
         if (status) updateDoc.status = status;
 
         const result = await db.collection<Project>('projects').updateOne(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(id as string) },
             { $set: updateDoc }
         );
 
@@ -90,7 +90,7 @@ export const deleteProject = async (req: Request, res: Response) => {
 
         // Soft delete
         const result = await db.collection<Project>('projects').updateOne(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(id as string) },
             { $set: { isDeleted: true, updatedAt: new Date() } }
         );
 

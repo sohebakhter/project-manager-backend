@@ -25,7 +25,7 @@ export const updateUserRole = async (req: Request, res: Response) => {
 
         const db = getDB();
         const result = await db.collection<User>('users').updateOne(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(id as string) },
             { $set: { role } }
         );
 
@@ -53,7 +53,7 @@ export const updateUserStatus = async (req: Request, res: Response) => {
 
         const db = getDB();
         const result = await db.collection<User>('users').updateOne(
-            { _id: new ObjectId(id) },
+            { _id: new ObjectId(id as string) },
             { $set: { status } }
         );
 

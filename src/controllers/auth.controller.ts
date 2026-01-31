@@ -67,12 +67,12 @@ export const createInvite = async (req: Request, res: Response) => {
         await db.collection<Invite>('invites').insertOne(invite);
 
         // Context: In a real app we'd email this. For this task, we return it.
-        const inviteLink = \`/register?token=\${token}\`;
-    res.status(201).json({ message: 'Invite created', token, inviteLink });
+        const inviteLink = `/register?token=${token}`;
+        res.status(201).json({ message: 'Invite created', token, inviteLink });
 
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
 };
 
 export const validateInvite = async (req: Request, res: Response) => {
@@ -99,45 +99,45 @@ export const validateInvite = async (req: Request, res: Response) => {
 };
 
 export const register = async (req: Request, res: Response) => {
-  try {
-    const { token, name, password } = req.body;
-    
-    const db = getDB();
-    const invite = await db.collection<Invite>('invites').findOne({ token, used: false });
+    try {
+        const { token, name, password } = req.body;
 
-    if (!invite) {
-        res.status(400).json({ message: 'Invalid or used invite token' });
-        return;
+        const db = getDB();
+        const invite = await db.collection<Invite>('invites').findOne({ token, used: false });
+
+        if (!invite) {
+            res.status(400).json({ message: 'Invalid or used invite token' });
+            return;
+        }
+
+        if (new Date() > invite.expiresAt) {
+            res.status(400).json({ message: 'Invite token expired' });
+            return;
+        }
+
+        const hashedPassword = await hashPassword(password);
+
+        const newUser: User = {
+            name,
+            email: invite.email,
+            password: hashedPassword,
+            role: invite.role,
+            status: UserStatus.ACTIVE,
+            invitedAt: invite.createdAt,
+            createdAt: new Date()
+        };
+
+        await db.collection<User>('users').insertOne(newUser);
+
+        // Mark invite as used
+        await db.collection<Invite>('invites').updateOne(
+            { _id: invite._id },
+            { $set: { used: true, usedAt: new Date() } }
+        );
+
+        res.status(201).json({ message: 'Registration successful. You can now login.' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
     }
-
-    if (new Date() > invite.expiresAt) {
-        res.status(400).json({ message: 'Invite token expired' });
-        return;
-    }
-
-    const hashedPassword = await hashPassword(password);
-
-    const newUser: User = {
-        name,
-        email: invite.email,
-        password: hashedPassword,
-        role: invite.role,
-        status: UserStatus.ACTIVE,
-        invitedAt: invite.createdAt,
-        createdAt: new Date()
-    };
-
-    await db.collection<User>('users').insertOne(newUser);
-    
-    // Mark invite as used
-    await db.collection<Invite>('invites').updateOne(
-        { _id: invite._id },
-        { $set: { used: true, usedAt: new Date() } }
-    );
-
-    res.status(201).json({ message: 'Registration successful. You can now login.' });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
 };
