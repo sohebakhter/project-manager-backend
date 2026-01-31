@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node src/index.ts",
-    "seed:admin": "ts-node src/scripts/seedAdmin.ts"
+    "seed:admin": "ts-node src/scripts/seedAdmin.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
